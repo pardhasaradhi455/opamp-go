@@ -1,0 +1,44 @@
+package main
+
+import (
+	"flag"
+	"log"
+	"os"
+	"os/signal"
+
+	"github.com/open-telemetry/opamp-go/opamp-server/data"
+	"github.com/open-telemetry/opamp-go/opamp-server/login"
+	"github.com/open-telemetry/opamp-go/opamp-server/opampsrv"
+	"github.com/open-telemetry/opamp-go/opamp-server/uisrv"
+)
+
+var logger = log.New(log.Default().Writer(), "[MAIN] ", log.Default().Flags()|log.Lmsgprefix|log.Lmicroseconds)
+
+func main() {
+	var emitMetrics bool
+	flag.BoolVar(&emitMetrics, "emit-metrics", false, "Emit metrics to stdout.")
+
+	flag.Parse()
+
+	curDir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+
+	logger.Println("OpAMP Server starting...")
+
+	uisrv.Start(curDir)
+	login.Start("3001")
+	opampSrv := opampsrv.NewServer(&data.AllAgents, emitMetrics)
+	opampSrv.Start()
+
+	logger.Println("OpAMP Server running...")
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt)
+	<-interrupt
+
+	logger.Println("OpAMP Server shutting down...")
+	uisrv.Shutdown()
+	opampSrv.Stop()
+}
