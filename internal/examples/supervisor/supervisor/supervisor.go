@@ -114,7 +114,7 @@ func NewSupervisor(logger types.Logger) (*Supervisor, error) {
 }
 
 func (s *Supervisor) loadConfig() error {
-	const configFile = "supervisor.yaml"
+	const configFile = "/mnt/c/Users/pardh/Downloads/workdir/opamp-go/internal/examples/supervisor/bin/supervisor.yaml"
 
 	k := koanf.New("::")
 	if err := k.Load(file.Provider(configFile), yaml.Parser()); err != nil {
